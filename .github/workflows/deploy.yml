@@ -1,0 +1,86 @@
+name: Deploy All 5 Network Sites
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy-anchorage-guide:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g vercel
+      - name: Deploy — AnchorageMortgageGuide.com
+        run: |
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} \
+            --env SITE_ID=anchorage-mortgage-guide \
+            --env SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --env SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  deploy-investor-guide:
+    runs-on: ubuntu-latest
+    environment: production
+    needs: deploy-anchorage-guide
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g vercel
+      - name: Deploy — AlaskaInvestorGuide.com
+        run: |
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} \
+            --env SITE_ID=alaska-investor-guide \
+            --env SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --env SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  deploy-military:
+    runs-on: ubuntu-latest
+    environment: production
+    needs: deploy-investor-guide
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g vercel
+      - name: Deploy — AKMilitaryHomeLoans.com
+        run: |
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} \
+            --env SITE_ID=ak-military-home-loans \
+            --env SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --env SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  deploy-data:
+    runs-on: ubuntu-latest
+    environment: production
+    needs: deploy-military
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g vercel
+      - name: Deploy — AlaskaMortgageData.com
+        run: |
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} \
+            --env SITE_ID=alaska-mortgage-data \
+            --env SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --env SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+
+  deploy-rankings:
+    runs-on: ubuntu-latest
+    environment: production
+    needs: deploy-data
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm install -g vercel
+      - name: Deploy — AlaskaLenderRankings.com
+        run: |
+          vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+          vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+          vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }} \
+            --env SITE_ID=alaska-lender-rankings \
+            --env SUPABASE_URL=${{ secrets.SUPABASE_URL }} \
+            --env SUPABASE_SERVICE_ROLE_KEY=${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
