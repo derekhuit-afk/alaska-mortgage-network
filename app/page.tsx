@@ -213,7 +213,10 @@ export default async function Page() {
       {/* ── FOOTER ──────────────────────────────────── */}
       <footer style={{ background: '#0F172A', color: '#475569', fontSize: 11, padding: '20px', textAlign: 'center' }}>
         <p style={{ margin: '0 0 4px' }}>
-          © 2026 {site.name} — A Huit.AI Network Property | Derek Huit, Cardinal Financial NMLS #203980
+          © 2026 {site.name} — A Huit.AI Network Property | Derek Huit, NMLS #203980
+        </p>
+        <p style={{ margin: '0 0 4px' }}>
+          <a href="https://huit.ai/terms" style={{ color: '#475569' }}>Terms</a> · <a href="https://huit.ai/privacy" style={{ color: '#475569' }}>Privacy</a>
         </p>
         <p style={{ margin: 0 }}>
           This site provides general mortgage information only. Not a loan commitment or rate lock. Rates and program availability change daily. Not affiliated with AHFC or any government agency.
