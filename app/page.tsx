@@ -4,8 +4,11 @@ import LeadForm from '@/components/LeadForm'
 
 export const revalidate = 3600
 
-// Auto-link VA loan mentions in FAQ answers to the canonical VA hub.
-// Escapes HTML first; pattern-replaces VA loan phrases with links.
+// Auto-link Alaska VA / military-loan mentions in spoke content to the canonical
+// hub at akmilitaryhomeloans.com. Each pattern fires on first occurrence only — we
+// don't want to overwhelm a paragraph with links. Patterns ordered by specificity
+// (most-specific first) so e.g. "JBER VA loan" matches the JBER variant before the
+// generic VA loan one.
 function escapeHtml(s: string): string {
   return s
     .replace(/&/g, '&amp;')
@@ -16,13 +19,28 @@ function escapeHtml(s: string): string {
 }
 
 function linkifyVA(text: string): string {
-  const safe = escapeHtml(text)
-  // Link "VA loan(s)" and "VA mortgage(s)" — first occurrence only
-  const linked = safe.replace(
-    /\b(VA loan|VA loans|VA mortgage|VA mortgages|VA-backed loan|VA financing)\b/,
-    '<a href="https://akmilitaryhomeloans.com" style="color:#1d4ed8;text-decoration:underline" target="_blank" rel="noopener">$1</a>'
-  )
-  return linked
+  let out = escapeHtml(text)
+  const used = new Set<string>()
+  const link = (label: string, href: string) => `<a href="${href}" style="color:#1d4ed8;text-decoration:underline" target="_blank" rel="noopener">${label}</a>`
+
+  const patterns: { re: RegExp; key: string; href: string }[] = [
+    { re: /\bJBER\b/, key: 'jber', href: 'https://akmilitaryhomeloans.com/jber' },
+    { re: /\bEielson( AFB)?\b/, key: 'eielson', href: 'https://akmilitaryhomeloans.com/fairbanks-va-loans' },
+    { re: /\bFort Wainwright\b/, key: 'wainwright', href: 'https://akmilitaryhomeloans.com/fairbanks-va-loans' },
+    { re: /\bPCS\b/, key: 'pcs', href: 'https://akmilitaryhomeloans.com/pcs' },
+    { re: /\bIRRRL\b/, key: 'irrrl', href: 'https://akmilitaryhomeloans.com/' },
+    { re: /\b(VA loan|VA loans|VA mortgage|VA mortgages|VA-backed loan|VA financing)\b/, key: 'va', href: 'https://akmilitaryhomeloans.com' },
+  ]
+
+  for (const p of patterns) {
+    if (used.has(p.key)) continue
+    const m = out.match(p.re)
+    if (m && m.index !== undefined) {
+      out = out.slice(0, m.index) + link(m[0], p.href) + out.slice(m.index + m[0].length)
+      used.add(p.key)
+    }
+  }
+  return out
 }
 
 export default async function Page() {
@@ -116,7 +134,10 @@ export default async function Page() {
               boxShadow: '0 1px 8px rgba(0,0,0,0.06)', borderLeft: `4px solid ${A}`,
             }}>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: P, margin: '0 0 12px' }}>{sec.heading}</h2>
-              <p style={{ fontSize: 15, color: '#374151', lineHeight: 1.75, margin: 0 }}>{sec.body}</p>
+              <p
+                style={{ fontSize: 15, color: '#374151', lineHeight: 1.75, margin: 0 }}
+                dangerouslySetInnerHTML={{ __html: linkifyVA(sec.body) }}
+              />
             </div>
           ))}
         </div>
