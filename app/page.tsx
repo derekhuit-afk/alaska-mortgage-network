@@ -4,6 +4,27 @@ import LeadForm from '@/components/LeadForm'
 
 export const revalidate = 3600
 
+// Auto-link VA loan mentions in FAQ answers to the canonical VA hub.
+// Escapes HTML first; pattern-replaces VA loan phrases with links.
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;')
+}
+
+function linkifyVA(text: string): string {
+  const safe = escapeHtml(text)
+  // Link "VA loan(s)" and "VA mortgage(s)" — first occurrence only
+  const linked = safe.replace(
+    /\b(VA loan|VA loans|VA mortgage|VA mortgages|VA-backed loan|VA financing)\b/,
+    '<a href="https://akmilitaryhomeloans.com" style="color:#1d4ed8;text-decoration:underline" target="_blank" rel="noopener">$1</a>'
+  )
+  return linked
+}
+
 export default async function Page() {
   const site = getSiteConfig()
   const stats = await getAlaskaStats()
@@ -148,9 +169,10 @@ export default async function Page() {
                 <span style={{ paddingRight: 12 }}>{f.q}</span>
                 <span style={{ color: A, flexShrink: 0 }}>▼</span>
               </summary>
-              <div style={{ padding: '4px 20px 16px', fontSize: 14, color: '#4B5563', lineHeight: 1.75, borderTop: '1px solid #F3F4F6' }}>
-                {f.a}
-              </div>
+              <div
+                style={{ padding: '4px 20px 16px', fontSize: 14, color: '#4B5563', lineHeight: 1.75, borderTop: '1px solid #F3F4F6' }}
+                dangerouslySetInnerHTML={{ __html: linkifyVA(f.a) }}
+              />
             </details>
           ))}
         </div>
